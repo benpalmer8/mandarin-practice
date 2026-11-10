@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandarin Speaking Practice</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mandarin">
+<meta name="theme-color" content="#f7f4ef">
+<link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%23b23a2e'/%3E%3Ctext x='90' y='122' font-size='100' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E8%AF%B4%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon.png">
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.26.0/dist/index.js"></script>
+<style>
+  :root {
+    --bg: #f7f4ef; --card: #ffffff; --ink: #22201c; --muted: #7a746b;
+    --line: #e6e0d6; --accent: #b23a2e; --good: #2e7d4f; --warn: #b7791f; --bad: #b23a2e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+  h1 { font-size: 18px; margin: 0; letter-spacing: .2px; }
+  .progress { font-size: 14px; color: var(--muted); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px;
+    padding: 7px 13px; font-size: 14px; cursor: pointer; color: var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px 18px; }
+  .label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .prompt { font-size: 26px; font-weight: 600; margin: 6px 0 4px; line-height: 1.25; }
+  .hint { font-size: 15px; color: var(--muted); min-height: 20px; margin-top: 6px; }
+  .row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  button.btn { flex: 1; min-width: 120px; padding: 13px 14px; font-size: 16px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.btn:disabled { opacity: .45; cursor: default; }
+  button.listening { background: var(--ink); border-color: var(--ink); color: #fff; }
+  input[type=text] { width: 100%; font-size: 18px; padding: 13px 12px; border-radius: 12px;
+    border: 1px solid var(--line); margin-top: 16px; background: #fffdf9; }
+  .heard { margin-top: 12px; font-size: 15px; color: var(--muted); min-height: 20px; }
+  .result { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); display: none; }
+  .verdict { font-weight: 600; font-size: 17px; }
+  .verdict.good { color: var(--good); } .verdict.warn { color: var(--warn); } .verdict.bad { color: var(--bad); }
+  .hanzi { font-size: 40px; margin: 10px 0 2px; }
+  .pinyin { font-size: 22px; color: var(--accent); }
+  .note { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .yours { font-size: 15px; margin-top: 8px; }
+  .status { font-size: 13px; color: var(--muted); margin-top: 14px; }
+  .summary h2 { font-size: 22px; margin: 0 0 8px; }
+  .summary ul { padding-left: 18px; } .summary li { margin: 6px 0; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Mandarin Speaking Practice</h1>
+    <span class="progress" id="progress"></span>
+  </header>
+
+  <div class="chips" id="sets"></div>
+
+  <section class="card" id="drill">
+    <div class="label">Say this in Mandarin</div>
+    <div class="prompt" id="prompt"></div>
+    <div class="hint" id="hint"></div>
+
+    <div class="row">
+      <button class="btn primary" id="micBtn" hidden>🎤 Speak</button>
+      <button class="btn" id="hintBtn">Hint</button>
+    </div>
+    <div class="heard" id="heard"></div>
+
+    <input type="text" id="typed" placeholder="Or type pinyin: ni3 hao3" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="row">
+      <button class="btn primary" id="checkBtn">Check</button>
+      <button class="btn" id="revealBtn">Show answer</button>
+    </div>
+
+    <div class="result" id="result">
+      <div class="verdict" id="verdict"></div>
+      <div class="yours" id="yours"></div>
+      <div class="hanzi" id="hanzi"></div>
+      <div class="pinyin" id="pinyin"></div>
+      <div class="note" id="note"></div>
+      <div class="row">
+        <button class="btn" id="playBtn">🔊 Listen</button>
+        <button class="btn primary" id="nextBtn">Next</button>
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+  </section>
+
+  <section class="card summary" id="summary" hidden>
+    <h2 id="sumTitle"></h2>
+    <p class="muted" id="sumText"></p>
+    <ul id="sumList"></ul>
+    <div class="row"><button class="btn primary" id="againBtn">Another round</button></div>
+  </section>
+</main>
+
+<script>
+// ---------- Data: only material from Snow's lessons and the reviewed old lessons ----------
+// num: accepted pinyin with tone numbers (neutral tone = no number). alt: other accepted forms.
+const ITEMS = [
+  // Snow, lesson 1 (9 Nov 2026)
+  {set:"snow", en:"Hello", zh:"你好", py:"nǐ hǎo", num:["ni3hao3","ni2hao3"], note:"Two 3rd tones: said ní hǎo."},
+  {set:"snow", en:"Hello (polite, to an elder)", zh:"您好", py:"nín hǎo", num:["nin2hao3"], note:"您 has 心 (heart) at the bottom."},
+  {set:"snow", en:"Hello, all of you", zh:"你们好", py:"nǐmen hǎo", num:["ni3menhao3"], note:"To a group."},
+  {set:"snow", en:"Hello, everyone", zh:"大家好", py:"dà jiā hǎo", num:["da4jia1hao3"], note:"jiā, not xiā (shrimp)."},
+  {set:"snow", en:"Morning! (casual)", zh:"早", py:"zǎo", num:["zao3"], note:"What most people actually say."},
+  {set:"snow", en:"Good morning", zh:"早上好", py:"zǎo shàng hǎo", num:["zao3shang4hao3","zao3shanghao3"], note:""},
+  {set:"snow", en:"Good afternoon", zh:"下午好", py:"xià wǔ hǎo", num:["xia4wu3hao3"], note:"Mostly for opening meetings."},
+  {set:"snow", en:"Good evening", zh:"晚上好", py:"wǎn shàng hǎo", num:["wan3shang4hao3","wan3shanghao3"], note:"A greeting only, never goodbye."},
+  {set:"snow", en:"Good night", zh:"晚安", py:"wǎn'ān", num:["wan3an1"], note:"Goodbye late at night, or in texts."},
+  {set:"snow", en:"Sorry", zh:"对不起", py:"duì bù qǐ", num:["dui4bu4qi3","dui4buqi3"], note:"Reply: 没关系."},
+  {set:"snow", en:"It's OK / never mind", zh:"没关系", py:"méi guān xi", num:["mei2guan1xi"], note:"The reply to 对不起."},
+  {set:"snow", en:"No problem", zh:"没问题", py:"méi wèntí", num:["mei2wen4ti2"], note:""},
+  {set:"snow", en:"Good", zh:"好", py:"hǎo", num:["hao3"], note:""},
+  {set:"snow", en:"Bad", zh:"坏", py:"huài", num:["huai4"], note:""},
+  {set:"snow", en:"I am a good person", zh:"我是好人", py:"wǒ shì hǎo rén", num:["wo3shi4hao3ren2"], note:""},
+  {set:"snow", en:"Big", zh:"大", py:"dà", num:["da4"], note:""},
+  {set:"snow", en:"He / she / it", zh:"他", alsoZh:["她","它"], py:"tā", num:["ta1"], note:"One sound for all three."},
+  {set:"snow", en:"Person", zh:"人", py:"rén", num:["ren2"], note:"Not 'yen'."},
+  {set:"snow", en:"To drink water", zh:"喝水", py:"hē shuǐ", num:["he1shui3"], note:""},
+  {set:"snow", en:"Hungry", zh:"饿", py:"è", num:["e4"], note:""},
+  {set:"snow", en:"I'm (very) hungry", zh:"我很饿", py:"wǒ hěn è", num:["wo3hen3e4","wo2hen3e4"], note:"3-3-4: said wó hěn è."},
+  {set:"snow", en:"Cooked rice", zh:"米饭", py:"mǐfàn", num:["mi3fan4"], note:"米 alone is uncooked rice."},
+  {set:"snow", en:"Female / woman", zh:"女", py:"nǚ", num:["nv3"], note:"Type ü as v: nv3."},
+  {set:"snow", en:"Heart", zh:"心", py:"xīn", num:["xin1"], note:""},
+  // Review: old class lessons 1 to 12 (quiz on 10 Nov 2026)
+  {set:"review", en:"What's your name?", zh:"你叫什么名字", py:"Nǐ jiào shénme míngzi?", num:["ni3jiao4shen2meming2zi"], note:"No 吗: 什么 already asks."},
+  {set:"review", en:"My name is Ben.", zh:"我叫", py:"Wǒ jiào Ben.", num:["wo3jiao4ben"], note:"One verb: 叫. No 是."},
+  {set:"review", en:"English person", zh:"英国人", py:"Yīngguó rén", num:["ying1guo2ren2"], note:"guó, not gǒu (dog)."},
+  {set:"review", en:"I'm English.", zh:"我是英国人", py:"Wǒ shì Yīngguó rén.", num:["wo3shi4ying1guo2ren2"], note:""},
+  {set:"review", en:"Family / home", zh:"家", py:"jiā", num:["jia1"], note:""},
+  {set:"review", en:"How many people are in your family?", zh:"你家有几口人", py:"Nǐ jiā yǒu jǐ kǒu rén?", num:["ni3jia1you3ji3kou3ren2"], note:"口 counts family members."},
+  {set:"review", en:"Wife", zh:"妻子", py:"qīzi", num:["qi1zi"], note:""},
+  {set:"review", en:"My wife's family has five people.", zh:"我妻子家有五口人", py:"Wǒ qīzi jiā yǒu wǔ kǒu rén.", num:["wo3qi1zijia1you3wu3kou3ren2"], note:""},
+  {set:"review", en:"Can you speak Chinese?", zh:"你会说汉语吗", py:"Nǐ huì shuō Hànyǔ ma?", num:["ni3hui4shuo1han4yu3ma"], note:"会 = can (a skill)."},
+  {set:"review", en:"I want to drink tea.", zh:"我想喝茶", py:"Wǒ xiǎng hē chá.", num:["wo3xiang3he1cha2"], note:"想 = want."},
+  {set:"review", en:"What's the date today?", zh:"今天几号", py:"Jīntiān jǐ hào?", num:["jin1tian1ji3hao4"], note:""},
+  {set:"review", en:"Daughter", zh:"女儿", py:"nǚ'ér", num:["nv3er2"], note:""},
+  {set:"review", en:"How old is your daughter?", zh:"你女儿几岁了", py:"Nǐ nǚ'ér jǐ suì le?", num:["ni3nv3er2ji3sui4le"], note:"No 是 before the age."},
+  {set:"review", en:"Son", zh:"儿子", py:"érzi", num:["er2zi"], note:""},
+  {set:"review", en:"Where does your son work?", zh:"你儿子在哪儿工作", py:"Nǐ érzi zài nǎr gōngzuò?", num:["ni3er2zizai4nar3gong1zuo4"], note:"在 + place comes before 工作."},
+  {set:"review", en:"Can I sit here?", zh:"我能坐这儿吗", py:"Wǒ néng zuò zhèr ma?", num:["wo3neng2zuo4zher4ma"], note:"坐 zuò (sit), not 走 zǒu (walk)."},
+];
+const SETS = [
+  {id:"snow", label:"Snow's lessons"},
+  {id:"review", label:"Review (old lessons)"},
+  {id:"all", label:"Everything"},
+];
+const ROUND = 10;
+
+// ---------- State ----------
+let currentSet = "snow";
+let queue = [], idx = 0, results = [], answered = false, attempts = 0;
+const $ = id => document.getElementById(id);
+
+function store(key, val) { try { if (val === undefined) return JSON.parse(localStorage.getItem(key)); localStorage.setItem(key, JSON.stringify(val)); } catch (e) { return null; } }
+(function(){ const s = store("msp-set"); if (s && SETS.some(x => x.id === s)) currentSet = s; })();
+
+// ---------- Text helpers ----------
+function normPinyin(s) {
+  return s.toLowerCase().replace(/ü|u:/g, "v").replace(/[^a-z0-9]/g, "").replace(/[05]/g, "");
+}
+function stripTones(s) { return s.replace(/[0-9]/g, ""); }
+function hanziOnly(s) { return (s || "").replace(/[^\u3400-\u9fff]/g, ""); }
+function toPinyin(s) {
+  try { if (window.pinyinPro) return pinyinPro.pinyin(s, {toneType: "symbol"}); } catch (e) {}
+  return "";
+}
+function spaced(num) { return num.replace(/([1-4])/g, "$1 ").trim(); }
+
+// ---------- Round ----------
+function pool() { return currentSet === "all" ? ITEMS : ITEMS.filter(i => i.set === currentSet); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function newRound() {
+  const stats = store("msp-stats") || {};
+  // Weight items you have missed before so they come up more often.
+  const items = shuffle(pool().slice()).sort((a, b) => (stats[b.zh]?.miss || 0) - (stats[a.zh]?.miss || 0));
+  queue = shuffle(items.slice(0, Math.min(ROUND, items.length)));
+  idx = 0; results = [];
+  $("summary").hidden = true; $("drill").hidden = false;
+  showCard();
+}
+function renderSets() {
+  $("sets").innerHTML = "";
+  SETS.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = s.label;
+    b.setAttribute("aria-pressed", s.id === currentSet);
+    b.onclick = () => { currentSet = s.id; store("msp-set", s.id); renderSets(); newRound(); };
+    $("sets").appendChild(b);
+  });
+}
+function showCard() {
+  const it = queue[idx];
+  answered = false; attempts = 0;
+  $("progress").textContent = `${idx + 1} / ${queue.length}`;
+  $("prompt").textContent = it.en;
+  $("hint").textContent = "";
+  $("heard").textContent = "";
+  $("typed").value = "";
+  $("result").style.display = "none";
+  $("checkBtn").disabled = false; $("revealBtn").disabled = false;
+  $("typed").focus({preventScroll: true});
+}
+function showResult(kind, text, yours) {
+  const it = queue[idx];
+  answered = true;
+  $("verdict").className = "verdict " + kind;
+  $("verdict").textContent = text;
+  $("yours").textContent = yours || "";
+  $("hanzi").textContent = it.zh + (it.alsoZh ? " / " + it.alsoZh.join(" / ") : "") + (it.zh === "我叫" ? " Ben" : "");
+  $("pinyin").textContent = it.py;
+  $("note").textContent = it.note || "";
+  $("result").style.display = "block";
+  $("checkBtn").disabled = true; $("revealBtn").disabled = true;
+  record(kind === "good");
+  speak(it.zh);
+}
+function record(ok) {
+  const it = queue[idx];
+  if (!results.some(r => r.it === it)) results.push({it, ok});
+  const stats = store("msp-stats") || {};
+  const s = stats[it.zh] || {ok: 0, miss: 0};
+  ok ? s.ok++ : s.miss++;
+  stats[it.zh] = s; store("msp-stats", stats);
+}
+function next() {
+  if (idx < queue.length - 1) { idx++; showCard(); return; }
+  const right = results.filter(r => r.ok).length;
+  $("drill").hidden = true; $("summary").hidden = false;
+  $("progress").textContent = "";
+  $("sumTitle").textContent = `${right} / ${results.length} right first time`;
+  const missed = results.filter(r => !r.ok);
+  $("sumText").textContent = missed.length ? "Say each of these out loud three times before your next round:" : "Clean round. Try another set, or come back tomorrow.";
+  $("sumList").innerHTML = "";
+  missed.forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = `${r.it.zh}${r.it.zh === "我叫" ? " Ben" : ""}  ${r.it.py}  (${r.it.en})`;
+    $("sumList").appendChild(li);
+  });
+}
+
+// ---------- Checking typed pinyin ----------
+function checkTyped() {
+  const it = queue[idx];
+  const raw = $("typed").value.trim();
+  if (!raw) { $("hint").textContent = "Type your answer first, or press Speak."; return; }
+  const u = normPinyin(raw);
+  const targets = it.num.map(normPinyin);
+  attempts++;
+  if (targets.includes(u)) return showResult("good", "Correct.", "");
+  if (targets.some(t => stripTones(t) === stripTones(u))) {
+    if (attempts < 2) { $("hint").textContent = "Right sounds, wrong tones. Fix the tone numbers and check again."; return; }
+    return showResult("warn", "Right sounds, wrong tones.", `You typed: ${raw}   Correct: ${spaced(it.num[0])}`);
+  }
+  if (attempts < 2) { $("hint").textContent = "Not quite. Try once more, or press Hint."; return; }
+  showResult("bad", "Not right.", `You typed: ${raw}`);
+}
+
+// ---------- Hint: pinyin with no tones ----------
+function giveHint() {
+  const it = queue[idx];
+  const plain = it.py.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[?.!]/g, "");
+  $("hint").textContent = "Hint: " + plain;
+  attempts = Math.max(attempts, 1);
+}
+
+// ---------- Listening (audio of the answer) ----------
+let tts = null;
+function zhVoice() {
+  try { return speechSynthesis.getVoices().find(v => /^zh(-|_)?(CN|Hans)?/i.test(v.lang) && !/HK|TW/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^zh/i.test(v.lang)); } catch (e) { return null; }
+}
+function speak(text) {
+  try {
+    const v = zhVoice();
+    if (v && window.speechSynthesis) {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = v; u.lang = v.lang; u.rate = 0.7;
+      speechSynthesis.speak(u);
+      return;
+    }
+  } catch (e) {}
+  if (tts) tts.speak(text, {language: "zh", rate: 0.7}).catch(() => {});
+}
+
+// ---------- Speaking: Claude dictation, else the browser's own recognition ----------
+let dict = null, recog = null, listening = false, heardText = "";
+function judgeSpoken(text) {
+  const it = queue[idx];
+  const heard = hanziOnly(text);
+  const wanted = [it.zh, ...(it.alsoZh || [])].map(hanziOnly);
+  const py = toPinyin(heard);
+  if (!heard) { $("heard").textContent = text ? `Heard: "${text}" (no Chinese recognised). Try again, a little slower.` : "Heard nothing. Try again."; return; }
+  if (wanted.some(w => heard.includes(w))) return showResult("good", "Understood. That came through as the right words.", `Heard: ${heard}  ${py}`);
+  attempts++;
+  if (attempts < 2) { $("heard").textContent = `Heard: ${heard}  ${py}. Not the target. Try again.`; return; }
+  showResult("bad", "It understood something else.", `Heard: ${heard}  ${py}`);
+}
+function setMic(on) {
+  listening = on;
+  $("micBtn").classList.toggle("listening", on);
+  $("micBtn").textContent = on ? "■ Stop" : "🎤 Speak";
+}
+function micClick() {
+  if (answered) return;
+  if (dict) {
+    if (listening) { dict.stop().catch(() => {}); return; }
+    heardText = "";
+    dict.start({language: "zh"}).catch(e => {
+      setMic(false);
+      if (e && e.code === "unavailable") { $("status").textContent = "Mandarin dictation isn't available here. Type pinyin instead."; $("micBtn").hidden = true; }
+      else if (e && e.code === "not_granted") { $("status").textContent = "Microphone not allowed. Type pinyin instead."; $("micBtn").hidden = true; }
+    });
+    return;
+  }
+  if (recog) {
+    if (listening) { recog.stop(); return; }
+    try { recog.start(); setMic(true); $("heard").textContent = "Listening…"; } catch (e) {}
+  }
+}
+function setupBrowserRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return false;
+  recog = new SR();
+  recog.lang = "zh-CN"; recog.interimResults = false; recog.maxAlternatives = 3;
+  recog.onresult = e => {
+    const alts = Array.from(e.results[0]).map(a => a.transcript);
+    const it = queue[idx];
+    const wanted = [it.zh, ...(it.alsoZh || [])].map(hanziOnly);
+    const hit = alts.find(a => wanted.some(w => hanziOnly(a).includes(w)));
+    judgeSpoken(hit || alts[0] || "");
+  };
+  recog.onerror = e => {
+    setMic(false);
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      $("status").textContent = "Microphone blocked in this view. Type pinyin instead, or open the page in Chrome on a computer.";
+      $("micBtn").hidden = true;
+    }
+  };
+  recog.onend = () => setMic(false);
+  $("micBtn").hidden = false;
+  return true;
+}
+async function setupCapabilities() {
+  if (!window.claude || typeof window.claude.use !== "function") {
+    if (!setupBrowserRecognition()) $("status").textContent = "Speaking isn't available in this browser. Typing works everywhere.";
+    return;
+  }
+  try { tts = await window.claude.use("tts"); } catch (e) { tts = null; }
+  try { dict = await window.claude.use("dictation"); } catch (e) { dict = null; }
+  if (dict) {
+    $("micBtn").hidden = false;
+    dict.onState(({state}) => {
+      if (state === "listening") { setMic(true); $("heard").textContent = "Listening… press Stop when you've said it."; }
+      if (state === "idle") { setMic(false); if (!answered) judgeSpoken(heardText); }
+    });
+    dict.onPartial(({text}) => { if (text) $("heard").textContent = "…" + text; });
+    dict.onFinal(({text}) => { heardText += text; });
+  } else if (!setupBrowserRecognition()) {
+    $("status").textContent = "Speaking works in Chrome on a computer. Here, type pinyin with tone numbers.";
+  }
+}
+
+// ---------- Wire up ----------
+$("checkBtn").onclick = checkTyped;
+$("typed").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); answered ? next() : checkTyped(); } });
+$("hintBtn").onclick = giveHint;
+$("revealBtn").onclick = () => showResult("bad", "Shown. It'll come back round.", "");
+$("playBtn").onclick = () => speak(queue[idx].zh);
+$("nextBtn").onclick = next;
+$("againBtn").onclick = newRound;
+$("micBtn").onclick = micClick;
+try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {}
+
+renderSets();
+newRound();
+setupCapabilities();
+</script>
+</body>
+</html>
